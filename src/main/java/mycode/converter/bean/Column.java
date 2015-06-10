@@ -42,7 +42,10 @@ public class Column {
             value = param.toString().split("=", -1)[1];
         }
         while (itr.hasNext()) {
-            itr.next().put(makeField, value);
+            Map<String, String> next = itr.next();
+            if (!next.containsKey(makeField)) {
+                next.put(makeField, value);
+            }
         }
         field.addTop(makeField);
     }

@@ -39,13 +39,15 @@ public class Preset {
     Find find;
 
     public void address(@Body List<Map<String, String>> listMap, @Header("itr") Iterator<Map<String, String>> itr, @Header("parameter") Parameter param, @Header("field") Field field) throws SQLException {
-        field.addTop("無効");
+        column.addTop(itr, new Parameter("無効"), field);
         if (!field.contains("市区町村")) {
-            field.addNext("都道府県", "市区町村");
+            column.append(itr, new Parameter("都道府県 市区町村"), field);
         }
+        itr = listMap.iterator();
         if (!field.contains("町域以降")) {
-            field.addNext("市区町村", "町域以降");
+            column.append(itr, new Parameter("市区町村 町域以降"), field);
         }
+        itr = listMap.iterator();
         if (!field.contains("市区町村")) {
             replace.character(itr, new Parameter("市区町村 ヶ→ケ"));
         }
