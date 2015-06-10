@@ -38,6 +38,7 @@ public class Validate {
                 map.put("無効", "1");
             }
         }
+        field.addTop("無効");
         field.addUnique("電話番号確認");
     }
 
