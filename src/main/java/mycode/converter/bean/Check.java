@@ -297,7 +297,8 @@ public class Check {
                 count++;
             }
         }
-        field.add("離島F");
+        field.addNext("無効", "離島F");
+        field.addTop("離島F");
         System.out.println("離島は" + count + "件ありました。");
     }
 
