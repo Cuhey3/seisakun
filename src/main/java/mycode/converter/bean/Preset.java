@@ -117,7 +117,7 @@ public class Preset {
     public void duplicate(@Body List<Map<String, String>> listMap, @Header("itr") Iterator<Map<String, String>> itr, @Header("parameter") Parameter param, @Header("field") Field field) throws Throwable {
         String paramString;
         if (field.contains("ナンバリング")) {
-            paramString = "ナンバリング ";
+            paramString = "ナンバリング";
         } else if (field.contains("SEQ")) {
             paramString = "SEQ";
         } else {
