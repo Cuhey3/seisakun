@@ -41,11 +41,11 @@ public class Preset {
     public void address(@Body List<Map<String, String>> listMap, @Header("itr") Iterator<Map<String, String>> itr, @Header("parameter") Parameter param, @Header("field") Field field) throws SQLException {
         column.addTop(itr, new Parameter("無効"), field);
         if (!field.contains("市区町村")) {
-            column.append(itr, new Parameter("都道府県 市区町村"), field);
+            column.addNext(itr, new Parameter("都道府県 市区町村"), field);
         }
         itr = listMap.iterator();
         if (!field.contains("町域以降")) {
-            column.append(itr, new Parameter("市区町村 町域以降"), field);
+            column.addNext(itr, new Parameter("市区町村 町域以降"), field);
         }
         itr = listMap.iterator();
         if (!field.contains("市区町村")) {
@@ -74,13 +74,13 @@ public class Preset {
         column.addTop(itr, param, field);
         param = new Parameter("都道府県 市区町村");
         itr = listMap.iterator();
-        column.append(itr, param, field);
+        column.addNext(itr, param, field);
         param = new Parameter("市区町村 町域以降");
         itr = listMap.iterator();
-        column.append(itr, param, field);
+        column.addNext(itr, param, field);
         param = new Parameter("町域以降 建物名");
         itr = listMap.iterator();
-        column.append(itr, param, field);
+        column.addNext(itr, param, field);
         param = new Parameter("都道府県 /　/ 市区町村 町域以降");
         itr = listMap.iterator();
         combine.withSeparator(itr, param);

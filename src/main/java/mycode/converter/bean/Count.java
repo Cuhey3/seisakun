@@ -15,8 +15,10 @@ public class Count {
         String targetField = param.first();
         LinkedHashMap<String, Integer> countMap = new LinkedHashMap<>();
         for (String p : param.second().split(":")) {
-            String[] split = p.split("=");
-            countMap.put(split[0], Integer.parseInt(split[1]));
+            if (p.contains("=")) {
+                String[] split = p.split("=");
+                countMap.put(split[0], Integer.parseInt(split[1]));
+            }
         }
         while (itr.hasNext()) {
             Map<String, String> map = itr.next();

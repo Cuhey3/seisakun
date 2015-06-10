@@ -13,7 +13,6 @@ import org.apache.camel.Body;
 import org.apache.camel.Exchange;
 import org.apache.camel.Header;
 import org.apache.camel.Headers;
-import org.apache.camel.Properties;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,12 +84,6 @@ public class MyRoute extends RouteBuilder {
             headers.put("parameter", new Parameter(param));
             headers.put("itr", body.iterator());
             return false;
-        }
-    }
-
-    public void fileComplete(@Properties Map prop) {
-        if ((Boolean) prop.get("CamelBatchComplete")) {
-            System.exit(0);
         }
     }
 

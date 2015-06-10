@@ -17,12 +17,15 @@ public class Column {
             value = param.toString().split("=", -1)[1];
         }
         while (itr.hasNext()) {
-            itr.next().put(makeField, value);
+            Map<String, String> next = itr.next();
+            if (!next.containsKey(makeField)) {
+                next.put(makeField, value);
+            }
         }
         field.addUnique(makeField);
     }
 
-    public void append(@Header("itr") Iterator<Map<String, String>> itr, @Header("parameter") Parameter param, @Header("field") Field field) {
+    public void addNext(@Header("itr") Iterator<Map<String, String>> itr, @Header("parameter") Parameter param, @Header("field") Field field) {
         String beforeField = param.first();
         String makeField = param.second().split("=", -1)[0];
         String value = "";
@@ -30,7 +33,10 @@ public class Column {
             value = param.second().split("=", -1)[1];
         }
         while (itr.hasNext()) {
-            itr.next().put(makeField, value);
+            Map<String, String> next = itr.next();
+            if (!next.containsKey(makeField)) {
+                next.put(makeField, value);
+            }
         }
         field.addNext(beforeField, makeField);
     }
