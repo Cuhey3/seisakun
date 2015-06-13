@@ -26,8 +26,10 @@ public class Column {
     }
 
     public void addNext(@Header("itr") Iterator<Map<String, String>> itr, @Header("parameter") Parameter param, @Header("field") Field field) {
+        
         String beforeField = param.first();
         String makeField = param.second().split("=", -1)[0];
+        System.out.println(beforeField + " " + makeField);
         String value = "";
         if (param.second().contains("=")) {
             value = param.second().split("=", -1)[1];

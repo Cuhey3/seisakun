@@ -40,6 +40,7 @@ public class Preset {
 
     public void address(@Body List<Map<String, String>> listMap, @Header("itr") Iterator<Map<String, String>> itr, @Header("parameter") Parameter param, @Header("field") Field field) throws SQLException {
         column.addTop(itr, new Parameter("無効"), field);
+        itr = listMap.iterator();
         if (!field.contains("市区町村")) {
             column.addNext(itr, new Parameter("都道府県 市区町村"), field);
         }
@@ -51,15 +52,10 @@ public class Preset {
         if (!field.contains("市区町村")) {
             replace.character(itr, new Parameter("市区町村 ヶ→ケ"));
         }
+
         itr = listMap.iterator();
         combine.withSeparator(itr, new Parameter("都道府県 /　/ 市区町村 町域以降"));
-        if (field.contains("番地")) {
-            itr = listMap.iterator();
-            combine.withSeparator(itr, new Parameter("都道府県 /　/ 番地"));
-            column.remove(new Parameter("番地"), field);
-        }
         itr = listMap.iterator();
-
         normalize.address(itr, new Parameter("都道府県"));
         itr = listMap.iterator();
         check.state(itr, field);
