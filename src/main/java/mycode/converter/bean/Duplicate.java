@@ -95,8 +95,11 @@ public class Duplicate {
                 Integer duplicateGroupNumber = map.get(key);
                 if (duplicateGroupNumber != null) {
                     Integer c = count.get(duplicateGroupNumber);
+                    String code = (duplicateGroupNumber * 1000 + (c + 1) + "").replaceFirst("(\\d{3})$", "-$1");
+                    while (code.length() < 7) {
+                        code = "0" + code;
+                    }
                     if (c == 0) {
-                        String code = duplicateGroupNumber * 1000 + 1 + "";
                         String get = m.get("重複コード");
                         if (get.isEmpty()) {
                             m.put("重複コード", code);
@@ -104,7 +107,7 @@ public class Duplicate {
                             m.put("重複コード", get + "/" + code);
                         }
                     } else {
-                        m.put("重複コード", duplicateGroupNumber * 1000 + (c + 1) + "");
+                        m.put("重複コード", code);
                         m.put("無効", "1");
                         m.put("ファイル内重複", keySetName);
                     }

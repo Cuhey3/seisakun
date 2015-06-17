@@ -29,7 +29,7 @@ public class Column {
         
         String beforeField = param.first();
         String makeField = param.second().split("=", -1)[0];
-        System.out.println(beforeField + " " + makeField);
+        System.out.println("[" + beforeField + "]フィールドの後ろに [" + makeField + "]フィールドを追加しました。");
         String value = "";
         if (param.second().contains("=")) {
             value = param.second().split("=", -1)[1];

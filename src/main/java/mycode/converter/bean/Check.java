@@ -294,6 +294,7 @@ public class Check {
             String zip = next.get("郵便番号").replace("-", "");
             if (ritouPattern.matcher(zip).find()) {
                 next.put("離島F", "1");
+                next.put("無効", "1");
                 count++;
             }
         }
