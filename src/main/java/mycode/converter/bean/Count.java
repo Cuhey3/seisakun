@@ -24,7 +24,8 @@ public class Count {
             Map<String, String> map = itr.next();
             String key = map.get(targetField);
             Integer count = countMap.get(key);
-            if (count == null || count == 0 || field.contains("無効") && map.get("無効").equals("1")) {
+            String ng = map.get("無効");
+            if (count == null || count == 0 || ng != null && !ng.isEmpty()) {
                 map.put("当選F", "");
             } else {
                 map.put("当選F", "1");
