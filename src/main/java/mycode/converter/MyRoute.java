@@ -1,14 +1,18 @@
 package mycode.converter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.camel.Body;
 import org.apache.camel.Exchange;
 import org.apache.camel.Header;
@@ -22,6 +26,11 @@ import mycode.converter.spec.Field;
 import mycode.converter.spec.Parameter;
 import org.apache.camel.Processor;
 import org.apache.camel.dataformat.csv.CsvDataFormat;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 @Component
 public class MyRoute extends RouteBuilder {
@@ -34,7 +43,7 @@ public class MyRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from("timer:foo?repeatCount=1").bean(this, "systemStartMessage()");
-        from("file:work?delay=1s&noop=true&readLock=none&idempotent=true&idempotentKey=${file:name}-${file:modified}&exclude=【精査済み】.*")
+        from("file:work?delay=1s&noop=true&readLock=none&idempotent=true&idempotentKey=${file:name}-${file:modified}&exclude=.*【精査済み】.*")
                 .unmarshal().string("Windows-31J")
                 .unmarshal().csv()
                 .bean(this, "readOrder")
@@ -53,8 +62,13 @@ public class MyRoute extends RouteBuilder {
                 .bean(this, "exceptionMessage");
 
         from("direct:slip").routingSlip(header("slip"), "#");
+
         from("direct:output")
                 .bean(this, "rebuildMapList")
+                .to("seda:output_text")
+                .to("seda:output_excel");
+
+        from("seda:output_text")
                 .choice().when(simple("header.tsv"))
                 .process(toCSVProcessor('\t'))
                 .otherwise()
@@ -66,6 +80,33 @@ public class MyRoute extends RouteBuilder {
                 .filter()
                 .simple("property.CamelBatchComplete")
                 .bean(this, "allSuccess");
+
+        from("seda:output_excel").process(new Processor() {
+
+            @Override
+            public void process(Exchange exchange) throws Exception {
+                try {
+                    Workbook workbook = new XSSFWorkbook();
+                    Sheet sheet = workbook.createSheet();
+                    ArrayList<LinkedHashMap<String, String>> mapList = exchange.getIn().getBody(ArrayList.class);
+                    int size = mapList.size();
+                    for (int i = 0; i < size; i++) {
+                        Row row = sheet.createRow(i);
+                        Iterator<String> iterator = mapList.get(i).values().iterator();
+                        for (int j = 0; iterator.hasNext(); j++) {
+                            row.createCell(j).setCellValue(iterator.next());
+                        }
+                    }
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    workbook.write(out);
+                    exchange.getIn().setBody(out.toByteArray());
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            }
+        }).setHeader(Exchange.FILE_NAME, simple("【精査済み】${file:onlyname.noext}.xlsx")).to("direct:save_excel");
+
+        from("direct:save_excel").doTry().to("file:work").bean(this, "saved").doCatch(java.io.FileNotFoundException.class).bean(this, "cantSave").delay(500).to("direct:save_excel");
     }
 
     public boolean nextOrder(@Headers Map headers, @Body List body) {
@@ -202,5 +243,21 @@ public class MyRoute extends RouteBuilder {
         System.out.println(sdf.format(new Date()) + " [SYSTEM] システムの起動が完了しました。");
         System.out.println(sdf.format(new Date()) + " [SYSTEM] 終了する時は閉じるボタンを押してください。");
         System.out.println(sdf.format(new Date()));
+    }
+
+    public void cantSave(@Headers Map headers) {
+        if (headers.get("messaged") == null) {
+            System.out.println(sdf.format(new Date()) + " [WARN]   精査結果のExcelファイルを保存できません。");
+            System.out.println(sdf.format(new Date()) + " [SYSTEM] 開いているExcelファイルを閉じてください。" + headers.get(Exchange.FILE_NAME));
+            System.out.println(sdf.format(new Date()));
+            headers.put("messaged", true);
+        }
+    }
+
+    public void saved(@Headers Map headers) {
+        if (headers.get("messaged") != null) {
+            System.out.println(sdf.format(new Date()) + " [SYSTEM] 精査結果のExcelファイルを保存しました。" + headers.get(Exchange.FILE_NAME));
+            System.out.println(sdf.format(new Date()));
+        }
     }
 }
