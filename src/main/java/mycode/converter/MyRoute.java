@@ -26,7 +26,6 @@ import mycode.converter.spec.Field;
 import mycode.converter.spec.Parameter;
 import org.apache.camel.Processor;
 import org.apache.camel.dataformat.csv.CsvDataFormat;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -69,7 +68,7 @@ public class MyRoute extends RouteBuilder {
                 .to("seda:output_excel");
 
         from("seda:output_text")
-                .choice().when(simple("header.tsv"))
+                .choice().when(simple("${header.tsv} || ${header.sqlflag}"))
                 .process(toCSVProcessor('\t'))
                 .otherwise()
                 .process(toCSVProcessor(','))
@@ -216,7 +215,11 @@ public class MyRoute extends RouteBuilder {
                 csv.setDelimiter(c);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 csv.marshal(exchange, exchange.getIn().getBody(), baos);
-                exchange.getIn().setBody(baos.toByteArray());
+                if (exchange.getIn().getHeader("sqlflag", boolean.class)) {
+                    exchange.getIn().setBody(exchange.getIn().getHeader("sql", String.class) + "\r\n" + new String(baos.toByteArray()));
+                } else {
+                    exchange.getIn().setBody(baos.toByteArray());
+                }
             }
         };
     }
@@ -259,5 +262,9 @@ public class MyRoute extends RouteBuilder {
             System.out.println(sdf.format(new Date()) + " [SYSTEM] 精査結果のExcelファイルを保存しました。" + headers.get(Exchange.FILE_NAME));
             System.out.println(sdf.format(new Date()));
         }
+    }
+
+    public String addSQL(@Body String body, @Headers Map headers) {
+        return headers.get("sql") + "\r\n" + body;
     }
 }
